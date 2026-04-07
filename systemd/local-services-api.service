@@ -1,0 +1,60 @@
+[Unit]
+Description=Local Services API - FastAPI Application
+Documentation=https://github.com/YOUR_USERNAME/local-services-app
+After=network.target
+Requires=network.target
+
+[Service]
+Type=notify
+User=appuser
+Group=appuser
+
+# Working directory
+WorkingDirectory=/opt/local-services-app
+
+# Python virtual environment
+Environment="PATH=/opt/local-services-app/venv/bin"
+
+# Load environment variables
+EnvironmentFile=/opt/local-services-app/.env
+
+# Main process
+ExecStart=/opt/local-services-app/venv/bin/gunicorn \
+    --workers 4 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 0.0.0.0:8000 \
+    --timeout 120 \
+    --graceful-timeout 30 \
+    --keep-alive 5 \
+    --access-logfile /var/log/local-services/access.log \
+    --error-logfile /var/log/local-services/error.log \
+    --log-level info \
+    app.main:app
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=512
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/local-services
+
+# Watchdog
+WatchdogSec=30
+
+[Install]
+WantedBy=multi-user.target

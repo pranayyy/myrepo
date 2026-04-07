@@ -1,0 +1,22 @@
+# Terraform Variables File - COPY TO terraform.tfvars
+# This file configures infrastructure parameters
+
+# AWS Region (us-east-1, us-west-2, eu-west-1, etc.)
+aws_region = "us-east-1"
+
+# EC2 Instance Type (t2.micro = free tier, t2.small = $10/month, t3.micro = $9/month)
+instance_type = "t2.micro"
+
+# RDS Instance Class (db.t3.micro = $14/month in multi-AZ)
+db_instance_class = "db.t3.micro"
+
+# Initial database storage in GB
+db_allocated_storage = 20
+
+# Path to SSH public key - REQUIRED
+# Generate with: ssh-keygen -t rsa -b 4096 -f ~/.ssh/local-services
+# Then set: ~/.ssh/local-services.pub
+ssh_public_key_path = "~/.ssh/local-services.pub"
+
+# Environment name (development, staging, production)
+environment = "development"
