@@ -128,9 +128,6 @@ jobs:
         run: |
           cd terraform
           terraform init
-        run: |
-          cd terraform
-          terraform init
           terraform plan -var-file="dev.tfvars" -out=tfplan
           terraform apply -auto-approve tfplan
       
@@ -159,9 +156,6 @@ jobs:
         uses: hashicorp/setup-terraform@v2
       
       - name: Initialize Terraform with S3 backend
-        run: |
-          cd terraform
-          terraform init
         run: |
           cd terraform
           terraform init
