@@ -107,7 +107,7 @@ jobs:
 
   deploy-dev:
     needs: build-and-push
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Deploy to Development
     
@@ -137,7 +137,7 @@ jobs:
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_ENV
 
   deploy-prod:
-    needs: build-and-push
+    needs: deploy-dev
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Deploy to Production
