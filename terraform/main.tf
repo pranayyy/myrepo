@@ -241,7 +241,7 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_secretsmanager_secret" "db_password" {
-  name                    = "local-services/db-password-20260403"
+  name                    = "local-services/db-password"
   recovery_window_in_days = 7
 
   tags = {
