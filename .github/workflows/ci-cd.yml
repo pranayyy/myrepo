@@ -124,7 +124,10 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
       
-      - name: Deploy to Development
+      - name: Initialize Terraform with S3 backend
+        run: |
+          cd terraform
+          terraform init
         run: |
           cd terraform
           terraform init
@@ -155,7 +158,10 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
       
-      - name: Deploy to Production
+      - name: Initialize Terraform with S3 backend
+        run: |
+          cd terraform
+          terraform init
         run: |
           cd terraform
           terraform init
