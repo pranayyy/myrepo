@@ -167,21 +167,16 @@ jobs:
           cd terraform
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_ENV
       
-      - name: Notify Slack
+      - name: Notify Microsoft Teams
         if: always()
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: jdcargile/ms-teams-notification@v1.3
         with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
-          payload: |
-            {
-              "text": "Production Deployment: ${{ job.status }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Production deployment ${{ job.status }}\nAPI: ${{ env.API_URL }}"
-                  }
-                }
-              ]
-            }
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK_URI }}
+          notification-color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
+          title: 'Production Deployment: ${{ job.status }}'
+          description: |
+            Environment: Production
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            API URL: ${{ env.API_URL }}
