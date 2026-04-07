@@ -182,7 +182,7 @@ resource "tls_private_key" "deployer" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "local-services-deployer"
+  key_name   = "local-services-deployer-${var.environment}"
   public_key = tls_private_key.deployer.public_key_openssh
 }
 
@@ -227,7 +227,7 @@ resource "aws_eip" "api" {
 # ==========================================
 
 resource "aws_db_subnet_group" "main" {
-  name       = "local-services-db-subnet"
+  name       = "local-services-db-subnet-${var.environment}"
   subnet_ids = aws_subnet.private[*].id
 
   tags = {
@@ -241,7 +241,7 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_secretsmanager_secret" "db_password" {
-  name                    = "local-services/db-password"
+  name                    = "local-services/db-password-${var.environment}"
   recovery_window_in_days = 7
 
   tags = {
@@ -296,7 +296,7 @@ resource "aws_db_instance" "postgres" {
 # ==========================================
 
 resource "aws_iam_role" "ec2_role" {
-  name = "local-services-ec2-role"
+  name = "local-services-ec2-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -313,12 +313,12 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "local-services-ec2-profile"
+  name = "local-services-ec2-profile-${var.environment}"
   role = aws_iam_role.ec2_role.name
 }
 
 resource "aws_iam_role_policy" "ec2_policy" {
-  name = "local-services-ec2-policy"
+  name = "local-services-ec2-policy-${var.environment}"
   role = aws_iam_role.ec2_role.id
 
   policy = jsonencode({
@@ -356,7 +356,7 @@ resource "aws_iam_role_policy" "ec2_policy" {
 }
 
 resource "aws_iam_role" "rds_monitoring" {
-  name = "local-services-rds-monitoring-role"
+  name = "local-services-rds-monitoring-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
