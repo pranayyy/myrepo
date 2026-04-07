@@ -177,7 +177,7 @@ resource "aws_security_group" "rds" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "local-services-deployer"
-  public_key = file(var.ssh_public_key_path)
+  public_key = file(pathexpand(var.ssh_public_key_path))
 }
 
 resource "aws_instance" "api" {
