@@ -107,7 +107,7 @@ jobs:
 
   deploy-dev:
     needs: build-and-push
-    if: github.ref == 'refs/heads/develop' && secrets.AWS_ACCESS_KEY_ID != ''
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     name: Deploy to Development
     
@@ -135,7 +135,7 @@ jobs:
 
   deploy-prod:
     needs: build-and-push
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.AWS_ACCESS_KEY_ID != ''
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Deploy to Production
     
