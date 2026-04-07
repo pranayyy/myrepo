@@ -24,12 +24,6 @@ variable "db_allocated_storage" {
   default     = 20
 }
 
-variable "ssh_public_key_path" {
-  description = "Path to SSH public key for EC2 deployment"
-  type        = string
-  # Example: ~/.ssh/id_rsa.pub
-}
-
 variable "environment" {
   description = "Environment name"
   type        = string

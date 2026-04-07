@@ -57,9 +57,15 @@ output "vpc_id" {
   value       = aws_vpc.main.id
 }
 
+output "ssh_private_key" {
+  description = "SSH private key for EC2 access"
+  value       = tls_private_key.deployer.private_key_pem
+  sensitive   = true
+}
+
 output "ssh_command" {
-  description = "Command to SSH into the instance"
-  value       = "ssh -i ~/.ssh/id_rsa ubuntu@${aws_eip.api.public_ip}"
+  description = "Command to SSH into the instance (save private key first)"
+  value       = "The private key is available in the ssh_private_key output. Save it to a file and use: ssh -i <key_file> ubuntu@${aws_eip.api.public_ip}"
 }
 
 output "api_url" {

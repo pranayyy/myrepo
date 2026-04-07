@@ -175,9 +175,15 @@ resource "aws_security_group" "rds" {
 # EC2 Instance
 # ==========================================
 
+# Generate SSH key pair for EC2 access
+resource "tls_private_key" "deployer" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
 resource "aws_key_pair" "deployer" {
   key_name   = "local-services-deployer"
-  public_key = file(pathexpand(var.ssh_public_key_path))
+  public_key = tls_private_key.deployer.public_key_openssh
 }
 
 resource "aws_instance" "api" {
