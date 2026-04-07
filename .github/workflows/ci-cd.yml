@@ -138,7 +138,7 @@ jobs:
 
   deploy-prod:
     needs: deploy-dev
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && false
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Deploy to Production
     
