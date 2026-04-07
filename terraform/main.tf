@@ -255,12 +255,12 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier            = "local-services-postgres"
+  identifier            = "local-services-postgres-${var.environment}"
   engine                = "postgres"
-  engine_version        = "16"
+  engine_version        = "15"
   instance_class        = var.db_instance_class
   allocated_storage     = var.db_allocated_storage
-  storage_type          = "gp3"
+  storage_type          = "gp2"
   db_name               = "local_services"
   username              = "postgres"
   password              = random_password.db_password.result
@@ -277,14 +277,13 @@ resource "aws_db_instance" "postgres" {
   maintenance_window      = "sun:04:00-sun:05:00"
   copy_tags_to_snapshot   = true
   
-  # Enhanced monitoring
-  monitoring_interval             = 60
-  monitoring_role_arn             = aws_iam_role.rds_monitoring.arn
-  enabled_cloudwatch_logs_exports = ["postgresql"]
+  # No enhanced monitoring for free tier
+  monitoring_interval = 0
+  enabled_cloudwatch_logs_exports = []
 
   # Skip final snapshot for development
   skip_final_snapshot       = true
-  final_snapshot_identifier = "local-services-postgres-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+  final_snapshot_identifier = "local-services-postgres-final-snapshot-${var.environment}-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
   tags = {
     Name = "local-services-postgres"
