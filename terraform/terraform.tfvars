@@ -4,8 +4,8 @@
 # AWS Region
 aws_region = "us-east-1"
 
-# EC2 Instance Type (t3.micro = $10/month, works in this region)
-instance_type = "t3.micro"
+# EC2 Instance Type (t2.micro = free-tier eligible)
+instance_type = "t2.micro"
 
 # RDS Database Instance Type (db.t3.micro = $14/month with multi-AZ)
 db_instance_class = "db.t3.micro"
