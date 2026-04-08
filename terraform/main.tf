@@ -72,8 +72,8 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block      = "0.0.0.0/0"
-    gateway_id      = aws_internet_gateway.main.id
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
   }
 
   tags = {
@@ -105,7 +105,7 @@ resource "aws_security_group" "ec2" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # CHANGE: Restrict to your IP
+    cidr_blocks = ["0.0.0.0/0"] # CHANGE: Restrict to your IP
   }
 
   # HTTP
@@ -182,8 +182,8 @@ resource "tls_private_key" "deployer" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "local-services-deployer-${var.environment}"
-  public_key = tls_private_key.deployer.public_key_openssh
+  key_name_prefix = "local-services-deployer-${var.environment}-"
+  public_key      = tls_private_key.deployer.public_key_openssh
 }
 
 resource "aws_instance" "api" {
@@ -227,8 +227,8 @@ resource "aws_eip" "api" {
 # ==========================================
 
 resource "aws_db_subnet_group" "main" {
-  name       = "local-services-db-subnet-${var.environment}"
-  subnet_ids = aws_subnet.private[*].id
+  name_prefix = "local-services-db-subnet-${var.environment}-"
+  subnet_ids  = aws_subnet.private[*].id
 
   tags = {
     Name = "local-services-db-subnet-group"
@@ -241,8 +241,9 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_secretsmanager_secret" "db_password" {
-  name                    = "local-services/db-password-${var.environment}"
-  recovery_window_in_days = 7
+  name_prefix                    = "local-services-db-password-${var.environment}-"
+  recovery_window_in_days        = 0
+  force_overwrite_replica_secret = true
 
   tags = {
     Name = "local-services-db-password"
@@ -255,30 +256,30 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier            = "local-services-postgres-${var.environment}"
-  engine                = "postgres"
-  engine_version        = "15"
-  instance_class        = var.db_instance_class
-  allocated_storage     = var.db_allocated_storage
-  storage_type          = "gp2"
-  db_name               = "local_services"
-  username              = "postgres"
-  password              = random_password.db_password.result
-  db_subnet_group_name  = aws_db_subnet_group.main.name
+  identifier             = "local-services-postgres-${var.environment}"
+  engine                 = "postgres"
+  engine_version         = "15"
+  instance_class         = var.db_instance_class
+  allocated_storage      = var.db_allocated_storage
+  storage_type           = "gp2"
+  db_name                = "local_services"
+  username               = "postgres"
+  password               = random_password.db_password.result
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  
+
   # High availability (free tier: no multi-AZ)
-  multi_az               = false
-  publicly_accessible   = false
-  
+  multi_az            = false
+  publicly_accessible = false
+
   # Backups and maintenance (free tier: retention=1, no multi-AZ)
   backup_retention_period = 1
   backup_window           = "03:00-04:00"
   maintenance_window      = "sun:04:00-sun:05:00"
   copy_tags_to_snapshot   = true
-  
+
   # No enhanced monitoring for free tier
-  monitoring_interval = 0
+  monitoring_interval             = 0
   enabled_cloudwatch_logs_exports = []
 
   # Skip final snapshot for development
@@ -295,7 +296,7 @@ resource "aws_db_instance" "postgres" {
 # ==========================================
 
 resource "aws_iam_role" "ec2_role" {
-  name = "local-services-ec2-role-${var.environment}"
+  name_prefix = "local-services-ec2-role-${var.environment}-"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -312,13 +313,13 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "local-services-ec2-profile-${var.environment}"
-  role = aws_iam_role.ec2_role.name
+  name_prefix = "local-services-ec2-profile-${var.environment}-"
+  role        = aws_iam_role.ec2_role.name
 }
 
 resource "aws_iam_role_policy" "ec2_policy" {
-  name = "local-services-ec2-policy-${var.environment}"
-  role = aws_iam_role.ec2_role.id
+  name_prefix = "local-services-ec2-policy-${var.environment}-"
+  role        = aws_iam_role.ec2_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -355,7 +356,7 @@ resource "aws_iam_role_policy" "ec2_policy" {
 }
 
 resource "aws_iam_role" "rds_monitoring" {
-  name = "local-services-rds-monitoring-role-${var.environment}"
+  name_prefix = "ls-rds-monitor-${var.environment}-"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -390,7 +391,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_cpu" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "Alert when EC2 CPU exceeds 80%"
-  alarm_actions       = []  # Add SNS topic ARN here
+  alarm_actions       = [] # Add SNS topic ARN here
 
   dimensions = {
     InstanceId = aws_instance.api.id
@@ -407,7 +408,7 @@ resource "aws_cloudwatch_metric_alarm" "db_cpu" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "Alert when RDS CPU exceeds 80%"
-  alarm_actions       = []  # Add SNS topic ARN here
+  alarm_actions       = [] # Add SNS topic ARN here
 
   dimensions = {
     DBInstanceIdentifier = aws_db_instance.postgres.identifier

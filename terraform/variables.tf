@@ -24,6 +24,12 @@ variable "db_allocated_storage" {
   default     = 20
 }
 
+variable "ssh_public_key_path" {
+  description = "SSH public key path (kept for compatibility with tfvars)"
+  type        = string
+  default     = ""
+}
+
 variable "environment" {
   description = "Environment name"
   type        = string
