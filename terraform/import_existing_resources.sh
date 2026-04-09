@@ -125,11 +125,12 @@ fi
 ensure_import "aws_route_table.public" "$RT_ID"
 
 if is_valid_id "$RT_ID"; then
-  ASSOC_1_ID="$(aws ec2 describe-route-tables --route-table-ids "$RT_ID" --query "RouteTables[0].Associations[?SubnetId=='$PUBLIC_1_ID'].RouteTableAssociationId | [0]" --output text 2>/dev/null || true)"
-  ASSOC_2_ID="$(aws ec2 describe-route-tables --route-table-ids "$RT_ID" --query "RouteTables[0].Associations[?SubnetId=='$PUBLIC_2_ID'].RouteTableAssociationId | [0]" --output text 2>/dev/null || true)"
-
-  ensure_import "aws_route_table_association.public[0]" "$ASSOC_1_ID"
-  ensure_import "aws_route_table_association.public[1]" "$ASSOC_2_ID"
+  if is_valid_id "$PUBLIC_1_ID"; then
+    ensure_import "aws_route_table_association.public[0]" "${PUBLIC_1_ID}/${RT_ID}"
+  fi
+  if is_valid_id "$PUBLIC_2_ID"; then
+    ensure_import "aws_route_table_association.public[1]" "${PUBLIC_2_ID}/${RT_ID}"
+  fi
 fi
 
 # Security groups

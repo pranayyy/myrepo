@@ -56,6 +56,11 @@ jobs:
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh development
 
+          terraform destroy -auto-approve -var-file="dev.tfvars" || true
+
+          chmod +x cleanup_orphaned_dependencies.sh
+          ./cleanup_orphaned_dependencies.sh development
+
           terraform destroy -auto-approve -var-file="dev.tfvars"
 
   destroy-production:
@@ -95,5 +100,10 @@ jobs:
 
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh production
+
+          terraform destroy -auto-approve -var-file="prod.tfvars" || true
+
+          chmod +x cleanup_orphaned_dependencies.sh
+          ./cleanup_orphaned_dependencies.sh production
 
           terraform destroy -auto-approve -var-file="prod.tfvars"

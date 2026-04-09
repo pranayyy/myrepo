@@ -41,3 +41,9 @@ variable "github_repo_url" {
   type        = string
   default     = "https://github.com/pranayyy/myrepo.git"
 }
+
+variable "tags" {
+  description = "Additional tags applied through environment tfvars"
+  type        = map(string)
+  default     = {}
+}
