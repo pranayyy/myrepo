@@ -51,7 +51,26 @@ ensure_import() {
 }
 
 # Core networking
-VPC_ID="$(aws ec2 describe-vpcs --filters Name=tag:Name,Values=local-services-vpc --query 'Vpcs[0].VpcId' --output text 2>/dev/null || true)"
+VPC_ID=""
+
+# Prefer the VPC already tracked in state when valid in AWS.
+STATE_VPC_ID="$(state_id aws_vpc.main || true)"
+if is_valid_id "$STATE_VPC_ID"; then
+  if aws ec2 describe-vpcs --vpc-ids "$STATE_VPC_ID" >/dev/null 2>&1; then
+    VPC_ID="$STATE_VPC_ID"
+  fi
+fi
+
+# Fallback 1: VPC by Name tag.
+if ! is_valid_id "$VPC_ID"; then
+  VPC_ID="$(aws ec2 describe-vpcs --filters Name=tag:Name,Values=local-services-vpc --query 'Vpcs[0].VpcId' --output text 2>/dev/null || true)"
+fi
+
+# Fallback 2: VPC by expected CIDR.
+if ! is_valid_id "$VPC_ID"; then
+  VPC_ID="$(aws ec2 describe-vpcs --filters Name=cidr-block,Values=10.0.0.0/16 --query 'Vpcs[0].VpcId' --output text 2>/dev/null || true)"
+fi
+
 ensure_import "aws_vpc.main" "$VPC_ID"
 
 PUBLIC_1_ID="$(aws ec2 describe-subnets --filters Name=tag:Name,Values=local-services-public-1 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
@@ -62,14 +81,26 @@ PRIVATE_2_ID="$(aws ec2 describe-subnets --filters Name=tag:Name,Values=local-se
 if ! is_valid_id "$PUBLIC_1_ID" && is_valid_id "$VPC_ID"; then
   PUBLIC_1_ID="$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$VPC_ID" Name=cidr-block,Values=10.0.1.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
 fi
+if ! is_valid_id "$PUBLIC_1_ID"; then
+  PUBLIC_1_ID="$(aws ec2 describe-subnets --filters Name=cidr-block,Values=10.0.1.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
+fi
 if ! is_valid_id "$PUBLIC_2_ID" && is_valid_id "$VPC_ID"; then
   PUBLIC_2_ID="$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$VPC_ID" Name=cidr-block,Values=10.0.2.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
+fi
+if ! is_valid_id "$PUBLIC_2_ID"; then
+  PUBLIC_2_ID="$(aws ec2 describe-subnets --filters Name=cidr-block,Values=10.0.2.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
 fi
 if ! is_valid_id "$PRIVATE_1_ID" && is_valid_id "$VPC_ID"; then
   PRIVATE_1_ID="$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$VPC_ID" Name=cidr-block,Values=10.0.10.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
 fi
+if ! is_valid_id "$PRIVATE_1_ID"; then
+  PRIVATE_1_ID="$(aws ec2 describe-subnets --filters Name=cidr-block,Values=10.0.10.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
+fi
 if ! is_valid_id "$PRIVATE_2_ID" && is_valid_id "$VPC_ID"; then
   PRIVATE_2_ID="$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$VPC_ID" Name=cidr-block,Values=10.0.11.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
+fi
+if ! is_valid_id "$PRIVATE_2_ID"; then
+  PRIVATE_2_ID="$(aws ec2 describe-subnets --filters Name=cidr-block,Values=10.0.11.0/24 --query 'Subnets[0].SubnetId' --output text 2>/dev/null || true)"
 fi
 
 ensure_import "aws_subnet.public[0]" "$PUBLIC_1_ID"
@@ -77,9 +108,13 @@ ensure_import "aws_subnet.public[1]" "$PUBLIC_2_ID"
 ensure_import "aws_subnet.private[0]" "$PRIVATE_1_ID"
 ensure_import "aws_subnet.private[1]" "$PRIVATE_2_ID"
 
-IGW_ID="$(aws ec2 describe-internet-gateways --filters Name=tag:Name,Values=local-services-igw --query 'InternetGateways[0].InternetGatewayId' --output text 2>/dev/null || true)"
-if ! is_valid_id "$IGW_ID" && is_valid_id "$VPC_ID"; then
+# Always prefer the IGW already attached to the target VPC.
+IGW_ID=""
+if is_valid_id "$VPC_ID"; then
   IGW_ID="$(aws ec2 describe-internet-gateways --filters Name=attachment.vpc-id,Values="$VPC_ID" --query 'InternetGateways[0].InternetGatewayId' --output text 2>/dev/null || true)"
+fi
+if ! is_valid_id "$IGW_ID"; then
+  IGW_ID="$(aws ec2 describe-internet-gateways --filters Name=tag:Name,Values=local-services-igw --query 'InternetGateways[0].InternetGatewayId' --output text 2>/dev/null || true)"
 fi
 ensure_import "aws_internet_gateway.main" "$IGW_ID"
 

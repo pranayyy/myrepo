@@ -130,6 +130,8 @@ jobs:
           terraform init
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh development
+          terraform plan -var-file="dev.tfvars" -refresh-only -out=tfrefresh
+          terraform apply -auto-approve tfrefresh
 
           terraform plan -var-file="dev.tfvars" -out=tfplan
           terraform apply -auto-approve tfplan
@@ -164,6 +166,8 @@ jobs:
           terraform init
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh production
+          terraform plan -var-file="prod.tfvars" -refresh-only -out=tfrefresh
+          terraform apply -auto-approve tfrefresh
 
           terraform plan -var-file="prod.tfvars" -out=tfplan
           terraform apply -auto-approve tfplan
