@@ -190,8 +190,11 @@ jobs:
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_ENV
       
       - name: Notify Microsoft Teams
-        if: always() && secrets.TEAMS_WEBHOOK_URI != ''
+        if: always()
+        env:
+          TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URI }}
         run: |
+          if [ -z "$TEAMS_WEBHOOK" ]; then echo "No Teams webhook configured, skipping"; exit 0; fi
           COLOR=$([[ "${{ job.status }}" == "success" ]] && echo "00FF00" || echo "FF0000")
           curl -sS -H "Content-Type: application/json" -d '{
             "@type": "MessageCard",
@@ -208,4 +211,4 @@ jobs:
               ],
               "markdown": true
             }]
-          }' "${{ secrets.TEAMS_WEBHOOK_URI }}"
+          }' "$TEAMS_WEBHOOK"
