@@ -190,15 +190,22 @@ jobs:
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_ENV
       
       - name: Notify Microsoft Teams
-        if: always()
-        uses: jdcargile/ms-teams-notification@v1.3
-        with:
-          github-token: ${{ github.token }}
-          ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK_URI }}
-          notification-color: ${{ job.status == 'success' && '00FF00' || 'FF0000' }}
-          title: 'Production Deployment: ${{ job.status }}'
-          description: |
-            Environment: Production
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            API URL: ${{ env.API_URL }}
+        if: always() && secrets.TEAMS_WEBHOOK_URI != ''
+        run: |
+          COLOR=$([[ "${{ job.status }}" == "success" ]] && echo "00FF00" || echo "FF0000")
+          curl -sS -H "Content-Type: application/json" -d '{
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "themeColor": "'"$COLOR"'",
+            "summary": "Production Deployment: ${{ job.status }}",
+            "sections": [{
+              "activityTitle": "Production Deployment: ${{ job.status }}",
+              "facts": [
+                { "name": "Environment", "value": "Production" },
+                { "name": "Branch", "value": "${{ github.ref }}" },
+                { "name": "Commit", "value": "${{ github.sha }}" },
+                { "name": "API URL", "value": "${{ env.API_URL }}" }
+              ],
+              "markdown": true
+            }]
+          }' "${{ secrets.TEAMS_WEBHOOK_URI }}"
