@@ -2,7 +2,7 @@
 # Provisions: EC2 + RDS PostgreSQL + Security Groups + IAM
 
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.2"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -222,6 +222,14 @@ resource "aws_eip" "api" {
 resource "aws_db_subnet_group" "main" {
   name_prefix = "local-services-db-subnet-${var.environment}-"
   subnet_ids  = aws_subnet.private[*].id
+
+  lifecycle {
+    create_before_destroy = true
+    replace_triggered_by = [
+      aws_subnet.private[0],
+      aws_subnet.private[1]
+    ]
+  }
 
   tags = {
     Name = "local-services-db-subnet-group"
