@@ -223,10 +223,6 @@ resource "aws_db_subnet_group" "main" {
   name       = "local-services-db-subnet-${var.environment}"
   subnet_ids = aws_subnet.private[*].id
 
-  lifecycle {
-    create_before_destroy = true
-  }
-
   tags = {
     Name = "local-services-db-subnet-group"
   }

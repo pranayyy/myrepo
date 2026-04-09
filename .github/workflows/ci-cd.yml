@@ -133,6 +133,16 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
+
+      - name: Reconcile DB subnet group state
+        run: |
+          cd terraform
+          terraform state rm aws_db_subnet_group.main 2>/dev/null || true
+          terraform import -var-file="dev.tfvars" aws_db_subnet_group.main "local-services-db-subnet-development" 2>/dev/null || true
+
+      - name: Plan and Apply
+        run: |
+          cd terraform
           terraform plan -var-file="dev.tfvars" -out=tfplan
           terraform apply -auto-approve tfplan
       
@@ -169,6 +179,16 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
+
+      - name: Reconcile DB subnet group state
+        run: |
+          cd terraform
+          terraform state rm aws_db_subnet_group.main 2>/dev/null || true
+          terraform import -var-file="prod.tfvars" aws_db_subnet_group.main "local-services-db-subnet-production" 2>/dev/null || true
+
+      - name: Plan and Apply
+        run: |
+          cd terraform
           terraform plan -var-file="prod.tfvars" -out=tfplan
           terraform apply -auto-approve tfplan
       
