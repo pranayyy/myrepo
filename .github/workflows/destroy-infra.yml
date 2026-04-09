@@ -1,0 +1,87 @@
+name: Destroy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Environment to destroy"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - development
+          - production
+          - all
+      confirm:
+        description: "Type DESTROY to confirm"
+        required: true
+        default: ""
+        type: string
+
+jobs:
+  destroy-development:
+    if: github.event.inputs.confirm == 'DESTROY' && (github.event.inputs.target == 'development' || github.event.inputs.target == 'all')
+    runs-on: ubuntu-latest
+    name: Destroy Development Infrastructure
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Import and destroy development resources
+        run: |
+          cd terraform
+          terraform init -reconfigure \
+            -backend-config="bucket=local-services-terraform-state" \
+            -backend-config="key=local-services/development/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+          chmod +x import_existing_resources.sh
+          ./import_existing_resources.sh development
+
+          terraform destroy -auto-approve -var-file="dev.tfvars"
+
+  destroy-production:
+    if: github.event.inputs.confirm == 'DESTROY' && (github.event.inputs.target == 'production' || github.event.inputs.target == 'all')
+    runs-on: ubuntu-latest
+    name: Destroy Production Infrastructure
+    needs: destroy-development
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Import and destroy production resources
+        run: |
+          cd terraform
+          terraform init -reconfigure \
+            -backend-config="bucket=local-services-terraform-state" \
+            -backend-config="key=local-services/production/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=terraform-locks"
+
+          chmod +x import_existing_resources.sh
+          ./import_existing_resources.sh production
+
+          terraform destroy -auto-approve -var-file="prod.tfvars"

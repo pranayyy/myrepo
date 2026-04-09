@@ -127,7 +127,12 @@ jobs:
       - name: Initialize Terraform with S3 backend
         run: |
           cd terraform
-          terraform init
+          terraform init -reconfigure \
+            -backend-config="bucket=local-services-terraform-state" \
+            -backend-config="key=local-services/development/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=terraform-locks"
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh development
           terraform plan -var-file="dev.tfvars" -refresh-only -out=tfrefresh
@@ -163,7 +168,12 @@ jobs:
       - name: Initialize Terraform with S3 backend
         run: |
           cd terraform
-          terraform init
+          terraform init -reconfigure \
+            -backend-config="bucket=local-services-terraform-state" \
+            -backend-config="key=local-services/production/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=terraform-locks"
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh production
           terraform plan -var-file="prod.tfvars" -refresh-only -out=tfrefresh

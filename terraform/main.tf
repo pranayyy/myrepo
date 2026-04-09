@@ -10,14 +10,7 @@ terraform {
     }
   }
 
-  # Uncomment to store state in S3 (recommended for production)
-  # backend "s3" {
-  #   bucket         = "your-terraform-state-bucket"
-  #   key            = "local-services/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-locks"
-  # }
+  backend "s3" {}
 }
 
 provider "aws" {
