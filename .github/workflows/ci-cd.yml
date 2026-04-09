@@ -134,11 +134,11 @@ jobs:
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
 
-      - name: Reconcile DB subnet group state
+      - name: Clean orphaned DB subnet group
         run: |
           cd terraform
           terraform state rm aws_db_subnet_group.main 2>/dev/null || true
-          terraform import -var-file="dev.tfvars" aws_db_subnet_group.main "local-services-db-subnet-development" 2>/dev/null || true
+          aws rds delete-db-subnet-group --db-subnet-group-name "local-services-db-subnet-development" 2>/dev/null || true
 
       - name: Plan and Apply
         run: |
@@ -180,11 +180,11 @@ jobs:
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
 
-      - name: Reconcile DB subnet group state
+      - name: Clean orphaned DB subnet group
         run: |
           cd terraform
           terraform state rm aws_db_subnet_group.main 2>/dev/null || true
-          terraform import -var-file="prod.tfvars" aws_db_subnet_group.main "local-services-db-subnet-production" 2>/dev/null || true
+          aws rds delete-db-subnet-group --db-subnet-group-name "local-services-db-subnet-production" 2>/dev/null || true
 
       - name: Plan and Apply
         run: |
