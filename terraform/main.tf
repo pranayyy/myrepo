@@ -220,15 +220,11 @@ resource "aws_eip" "api" {
 # ==========================================
 
 resource "aws_db_subnet_group" "main" {
-  name_prefix = "local-services-db-subnet-${var.environment}-"
-  subnet_ids  = aws_subnet.private[*].id
+  name       = "local-services-db-subnet-${var.environment}"
+  subnet_ids = aws_subnet.private[*].id
 
   lifecycle {
     create_before_destroy = true
-    replace_triggered_by = [
-      aws_subnet.private[0],
-      aws_subnet.private[1]
-    ]
   }
 
   tags = {
