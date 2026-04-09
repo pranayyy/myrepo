@@ -123,6 +123,8 @@ jobs:
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
       
       - name: Initialize Terraform with S3 backend
         run: |
@@ -133,12 +135,6 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
-
-      - name: Clean orphaned DB subnet group
-        run: |
-          cd terraform
-          terraform state rm aws_db_subnet_group.main 2>/dev/null || true
-          aws rds delete-db-subnet-group --db-subnet-group-name "local-services-db-subnet-development" 2>/dev/null || true
 
       - name: Plan and Apply
         run: |
@@ -169,6 +165,8 @@ jobs:
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
       
       - name: Initialize Terraform with S3 backend
         run: |
@@ -179,12 +177,6 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
-
-      - name: Clean orphaned DB subnet group
-        run: |
-          cd terraform
-          terraform state rm aws_db_subnet_group.main 2>/dev/null || true
-          aws rds delete-db-subnet-group --db-subnet-group-name "local-services-db-subnet-production" 2>/dev/null || true
 
       - name: Plan and Apply
         run: |
