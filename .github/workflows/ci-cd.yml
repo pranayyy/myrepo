@@ -123,6 +123,12 @@ jobs:
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+
+      - name: Bootstrap Terraform backend
+        run: |
+          cd terraform
+          chmod +x bootstrap_backend.sh
+          ./bootstrap_backend.sh local-services-terraform-state us-east-1
       
       - name: Initialize Terraform with S3 backend
         run: |
@@ -132,7 +138,7 @@ jobs:
             -backend-config="key=local-services/development/terraform.tfstate" \
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
-            -backend-config="dynamodb_table=terraform-locks"
+            -backend-config="use_lockfile=true"
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh development
           terraform plan -var-file="dev.tfvars" -refresh-only -out=tfrefresh
@@ -164,6 +170,12 @@ jobs:
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+
+      - name: Bootstrap Terraform backend
+        run: |
+          cd terraform
+          chmod +x bootstrap_backend.sh
+          ./bootstrap_backend.sh local-services-terraform-state us-east-1
       
       - name: Initialize Terraform with S3 backend
         run: |
@@ -173,7 +185,7 @@ jobs:
             -backend-config="key=local-services/production/terraform.tfstate" \
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
-            -backend-config="dynamodb_table=terraform-locks"
+            -backend-config="use_lockfile=true"
           chmod +x import_existing_resources.sh
           ./import_existing_resources.sh production
           terraform plan -var-file="prod.tfvars" -refresh-only -out=tfrefresh
