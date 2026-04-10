@@ -194,7 +194,7 @@ resource "aws_instance" "api" {
     db_name          = aws_db_instance.postgres.db_name
     db_user          = aws_db_instance.postgres.username
     db_password      = random_password.db_password.result
-    github_repo_url  = var.github_repo_url
+    docker_image     = var.docker_image
   }))
 
   tags = {
@@ -341,6 +341,23 @@ resource "aws_iam_role_policy" "ec2_policy" {
         Effect = "Allow"
         Action = [
           "cloudwatch:PutMetricData"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:UpdateInstanceInformation",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel",
+          "ec2messages:AcknowledgeMessage",
+          "ec2messages:DeleteMessage",
+          "ec2messages:FailMessage",
+          "ec2messages:GetEndpoint",
+          "ec2messages:GetMessages",
+          "ec2messages:SendReply"
         ]
         Resource = "*"
       }

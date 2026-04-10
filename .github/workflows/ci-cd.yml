@@ -146,6 +146,17 @@ jobs:
         run: |
           cd terraform
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_ENV
+          echo "INSTANCE_ID=$(terraform output -raw ec2_instance_id)" >> $GITHUB_ENV
+
+      - name: Deploy latest Docker image via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["bash /opt/local-services-app/deploy.sh ghcr.io/pranayyy/myrepo:main"]' \
+            --timeout-seconds 120 \
+            --comment "Deploy latest Docker image (dev)" \
+            --output text
 
   deploy-prod:
     needs: deploy-dev
@@ -188,41 +199,53 @@ jobs:
         run: |
           cd terraform
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_ENV
-      
-      - name: Notify Microsoft Teams
-        if: always()
-        env:
-          TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URI }}
+          echo "INSTANCE_ID=$(terraform output -raw ec2_instance_id)" >> $GITHUB_ENV
+
+      - name: Deploy latest Docker image via SSM
         run: |
-          if [ -z "$TEAMS_WEBHOOK" ]; then echo "No Teams webhook configured, skipping"; exit 0; fi
-          STATUS="${{ job.status }}"
-          if [ "$STATUS" = "success" ]; then COLOR="Good"; EMOJI="✅"; else COLOR="Attention"; EMOJI="❌"; fi
-          curl -sS -H "Content-Type: application/json" -d '{
-            "type": "message",
-            "attachments": [{
-              "contentType": "application/vnd.microsoft.card.adaptive",
-              "contentUrl": null,
-              "content": {
-                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "type": "AdaptiveCard",
-                "version": "1.4",
-                "body": [
-                  {
-                    "type": "TextBlock",
-                    "size": "Medium",
-                    "weight": "Bolder",
-                    "text": "'"$EMOJI"' Production Deployment: '"$STATUS"'"
-                  },
-                  {
-                    "type": "FactSet",
-                    "facts": [
-                      { "title": "Environment", "value": "Production" },
-                      { "title": "Branch", "value": "${{ github.ref }}" },
-                      { "title": "Commit", "value": "${{ github.sha }}" },
-                      { "title": "API URL", "value": "${{ env.API_URL }}" }
-                    ]
-                  }
-                ]
-              }
-            }]
-          }' "$TEAMS_WEBHOOK"
+          aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["bash /opt/local-services-app/deploy.sh ghcr.io/pranayyy/myrepo:main"]' \
+            --timeout-seconds 120 \
+            --comment "Deploy latest Docker image (prod)" \
+            --output text
+      
+      # TODO: Re-enable Teams notification once a valid Workflows webhook URL is configured
+      # - name: Notify Microsoft Teams
+      #   if: always()
+      #   env:
+      #     TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URI }}
+      #   run: |
+      #     if [ -z "$TEAMS_WEBHOOK" ]; then echo "No Teams webhook configured, skipping"; exit 0; fi
+      #     STATUS="${{ job.status }}"
+      #     if [ "$STATUS" = "success" ]; then COLOR="Good"; EMOJI="✅"; else COLOR="Attention"; EMOJI="❌"; fi
+      #     curl -sS -H "Content-Type: application/json" -d '{
+      #       "type": "message",
+      #       "attachments": [{
+      #         "contentType": "application/vnd.microsoft.card.adaptive",
+      #         "contentUrl": null,
+      #         "content": {
+      #           "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      #           "type": "AdaptiveCard",
+      #           "version": "1.4",
+      #           "body": [
+      #             {
+      #               "type": "TextBlock",
+      #               "size": "Medium",
+      #               "weight": "Bolder",
+      #               "text": "'"$EMOJI"' Production Deployment: '"$STATUS"'"
+      #             },
+      #             {
+      #               "type": "FactSet",
+      #               "facts": [
+      #                 { "title": "Environment", "value": "Production" },
+      #                 { "title": "Branch", "value": "${{ github.ref }}" },
+      #                 { "title": "Commit", "value": "${{ github.sha }}" },
+      #                 { "title": "API URL", "value": "${{ env.API_URL }}" }
+      #               ]
+      #             }
+      #           ]
+      #         }
+      #       }]
+      #     }' "$TEAMS_WEBHOOK"

@@ -42,6 +42,12 @@ variable "github_repo_url" {
   default     = "https://github.com/pranayyy/myrepo.git"
 }
 
+variable "docker_image" {
+  description = "Docker image to deploy"
+  type        = string
+  default     = "ghcr.io/pranayyy/myrepo:main"
+}
+
 variable "tags" {
   description = "Additional tags applied through environment tfvars"
   type        = map(string)
