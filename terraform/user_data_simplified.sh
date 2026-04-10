@@ -73,8 +73,8 @@ docker rm local-services-api 2>/dev/null || true
 docker run -d \
   --name local-services-api \
   --restart always \
+  --network host \
   --env-file /opt/local-services-app/.env \
-  -p 8000:8000 \
   "$IMAGE"
 echo "Container started. Waiting for health check..."
 for i in {1..30}; do
@@ -97,8 +97,8 @@ docker pull ${docker_image}
 docker run -d \
   --name local-services-api \
   --restart always \
+  --network host \
   --env-file /opt/local-services-app/.env \
-  -p 8000:8000 \
   ${docker_image}
 
 # Wait and test health endpoint
