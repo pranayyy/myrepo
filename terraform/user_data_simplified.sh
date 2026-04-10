@@ -32,8 +32,8 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/
 chmod a+r /etc/apt/keyrings/docker.gpg
 
 echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  "deb [arch=$$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
@@ -51,7 +51,7 @@ cd /opt/local-services-app
 echo "[5] Creating environment configuration..."
 cat > .env << ENVFILE
 DATABASE_URL=postgresql://${db_user}:${db_password}@${db_endpoint_host}:5432/${db_name}
-SECRET_KEY=$(openssl rand -hex 32)
+SECRET_KEY=$$(openssl rand -hex 32)
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ENVIRONMENT=production
@@ -65,7 +65,7 @@ echo "[6] Creating deploy script..."
 cat > /opt/local-services-app/deploy.sh << 'DEPLOYSCRIPT'
 #!/bin/bash
 set -e
-IMAGE="${1:-ghcr.io/pranayyy/myrepo:main}"
+IMAGE="$${1:-ghcr.io/pranayyy/myrepo:main}"
 echo "Deploying image: $IMAGE"
 docker pull "$IMAGE"
 docker stop local-services-api 2>/dev/null || true
@@ -123,7 +123,7 @@ systemctl start snap.amazon-ssm-agent.amazon-ssm-agent.service || systemctl star
 echo "=========================================="
 echo "EC2 Instance Configuration Complete!"
 echo "=========================================="
-IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "unknown")
+IP=$$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "unknown")
 echo "API available at: http://$IP:8000"
 echo "API docs at: http://$IP:8000/docs"
 echo "=========================================="
