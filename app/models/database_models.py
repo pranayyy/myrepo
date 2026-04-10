@@ -84,5 +84,14 @@ class Rating(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     service_id = Column(Integer, ForeignKey('service.id'))
+    rating = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Rating(Base):
+    __tablename__ = "rating"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    service_id = Column(Integer, ForeignKey('service.id'))
     rating = Column(Integer)  # 1-5
     created_at = Column(DateTime, default=datetime.utcnow)
