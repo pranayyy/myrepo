@@ -8,6 +8,9 @@ echo "=========================================="
 echo "Starting EC2 Instance Setup"
 echo "=========================================="
 
+# Remove any malformed Docker apt sources from previous attempts
+rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.list.save
+
 # Update and install Docker + utilities
 apt-get update -y
 DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io curl postgresql-client
