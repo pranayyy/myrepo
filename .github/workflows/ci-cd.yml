@@ -195,20 +195,34 @@ jobs:
           TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URI }}
         run: |
           if [ -z "$TEAMS_WEBHOOK" ]; then echo "No Teams webhook configured, skipping"; exit 0; fi
-          COLOR=$([[ "${{ job.status }}" == "success" ]] && echo "00FF00" || echo "FF0000")
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" = "success" ]; then COLOR="Good"; EMOJI="✅"; else COLOR="Attention"; EMOJI="❌"; fi
           curl -sS -H "Content-Type: application/json" -d '{
-            "@type": "MessageCard",
-            "@context": "http://schema.org/extensions",
-            "themeColor": "'"$COLOR"'",
-            "summary": "Production Deployment: ${{ job.status }}",
-            "sections": [{
-              "activityTitle": "Production Deployment: ${{ job.status }}",
-              "facts": [
-                { "name": "Environment", "value": "Production" },
-                { "name": "Branch", "value": "${{ github.ref }}" },
-                { "name": "Commit", "value": "${{ github.sha }}" },
-                { "name": "API URL", "value": "${{ env.API_URL }}" }
-              ],
-              "markdown": true
+            "type": "message",
+            "attachments": [{
+              "contentType": "application/vnd.microsoft.card.adaptive",
+              "contentUrl": null,
+              "content": {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.4",
+                "body": [
+                  {
+                    "type": "TextBlock",
+                    "size": "Medium",
+                    "weight": "Bolder",
+                    "text": "'"$EMOJI"' Production Deployment: '"$STATUS"'"
+                  },
+                  {
+                    "type": "FactSet",
+                    "facts": [
+                      { "title": "Environment", "value": "Production" },
+                      { "title": "Branch", "value": "${{ github.ref }}" },
+                      { "title": "Commit", "value": "${{ github.sha }}" },
+                      { "title": "API URL", "value": "${{ env.API_URL }}" }
+                    ]
+                  }
+                ]
+              }
             }]
           }' "$TEAMS_WEBHOOK"
