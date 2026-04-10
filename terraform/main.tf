@@ -194,8 +194,6 @@ resource "aws_instance" "api" {
     db_name          = aws_db_instance.postgres.db_name
     db_user          = aws_db_instance.postgres.username
     db_password      = random_password.db_password.result
-    docker_image     = var.docker_image
-    aws_region       = var.aws_region
   }))
 
   tags = {
