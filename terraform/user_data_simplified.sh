@@ -16,19 +16,16 @@ echo "[1] Updating system packages..."
 apt-get update
 apt-get upgrade -y
 
-# Install required software
-echo "[2] Installing utilities..."
+# Install required software and Docker
+echo "[2] Installing Docker and utilities..."
 apt-get install -y \
     ca-certificates \
     curl \
-    postgresql-client
-
-# Install Docker using the official convenience script
-echo "[3] Installing Docker..."
-curl -fsSL https://get.docker.com | sh
+    postgresql-client \
+    docker.io
 
 # Start and enable Docker
-echo "[4] Starting Docker..."
+echo "[3] Starting Docker..."
 systemctl start docker
 systemctl enable docker
 
