@@ -153,7 +153,7 @@ jobs:
           aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["bash /opt/local-services-app/deploy.sh ghcr.io/pranayyy/myrepo:main"]' \
+            --parameters 'commands=["bash /opt/local-services-app/deploy.sh ghcr.io/pranayyy/myrepo:main us-east-1"]' \
             --timeout-seconds 120 \
             --comment "Deploy latest Docker image (dev)" \
             --output text
@@ -206,7 +206,7 @@ jobs:
           aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["bash /opt/local-services-app/deploy.sh ghcr.io/pranayyy/myrepo:main"]' \
+            --parameters 'commands=["bash /opt/local-services-app/deploy.sh ghcr.io/pranayyy/myrepo:main us-east-1"]' \
             --timeout-seconds 120 \
             --comment "Deploy latest Docker image (prod)" \
             --output text

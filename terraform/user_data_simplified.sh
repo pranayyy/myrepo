@@ -66,6 +66,7 @@ cat > /opt/local-services-app/deploy.sh << 'DEPLOYSCRIPT'
 #!/bin/bash
 set -e
 IMAGE="$${1:-ghcr.io/pranayyy/myrepo:main}"
+REGION="$${2:-us-east-1}"
 echo "Deploying image: $IMAGE"
 docker pull "$IMAGE"
 docker stop local-services-api 2>/dev/null || true
@@ -74,6 +75,11 @@ docker run -d \
   --name local-services-api \
   --restart always \
   --network host \
+  --log-driver=awslogs \
+  --log-opt awslogs-region="$REGION" \
+  --log-opt awslogs-group=/local-services/api \
+  --log-opt awslogs-stream=api-container \
+  --log-opt awslogs-create-group=true \
   --env-file /opt/local-services-app/.env \
   "$IMAGE"
 echo "Container started. Waiting for health check..."
@@ -86,6 +92,7 @@ for i in {1..30}; do
   sleep 2
 done
 echo "Health check failed!"
+docker logs local-services-api --tail 50
 exit 1
 DEPLOYSCRIPT
 chmod +x /opt/local-services-app/deploy.sh
@@ -98,6 +105,11 @@ docker run -d \
   --name local-services-api \
   --restart always \
   --network host \
+  --log-driver=awslogs \
+  --log-opt awslogs-region=${aws_region} \
+  --log-opt awslogs-group=/local-services/api \
+  --log-opt awslogs-stream=api-container \
+  --log-opt awslogs-create-group=true \
   --env-file /opt/local-services-app/.env \
   ${docker_image}
 
@@ -113,6 +125,16 @@ for i in {1..30}; do
         sleep 2
     fi
 done
+
+# Print container logs if health check didn't pass
+if ! curl -s http://localhost:8000/health > /dev/null 2>&1; then
+    echo "Container may have failed to start. Dumping logs:"
+    docker logs local-services-api --tail 100 2>&1 || true
+fi
+
+# Also send user_data log to CloudWatch
+aws logs create-log-group --log-group-name /local-services/user-data --region ${aws_region} 2>/dev/null || true
+aws logs create-log-stream --log-group-name /local-services/user-data --log-stream-name "instance-init" --region ${aws_region} 2>/dev/null || true
 
 # Install SSM agent for CI/CD remote commands
 echo "[9] Installing AWS SSM Agent..."
