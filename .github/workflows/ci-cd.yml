@@ -189,10 +189,11 @@ jobs:
 
       - name: Create .env file on instance via SSM
         run: |
+          SECRET_KEY=$(openssl rand -hex 32)
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"mkdir -p /opt/local-services-app && cat > /opt/local-services-app/.env << 'ENVEOF'\nDATABASE_URL=postgresql://${RDS_USERNAME}:${DB_PASSWORD}@${RDS_ADDRESS}:5432/${RDS_DB_NAME}\nSECRET_KEY=$(openssl rand -hex 32)\nALGORITHM=HS256\nACCESS_TOKEN_EXPIRE_MINUTES=30\nENVIRONMENT=production\nENVEOF\nchmod 600 /opt/local-services-app/.env && echo .env file created successfully\"]" \
+            --parameters '{"commands":["mkdir -p /opt/local-services-app && printf '\''DATABASE_URL=postgresql://'"$RDS_USERNAME"':'"$DB_PASSWORD"'@'"$RDS_ADDRESS"':5432/'"$RDS_DB_NAME"'\nSECRET_KEY='"$SECRET_KEY"'\nALGORITHM=HS256\nACCESS_TOKEN_EXPIRE_MINUTES=30\nENVIRONMENT=production\n'\'' > /opt/local-services-app/.env && chmod 600 /opt/local-services-app/.env && echo .env file created successfully"]}' \
             --timeout-seconds 30 \
             --comment "Create .env file" \
             --query "Command.CommandId" --output text)
@@ -304,10 +305,11 @@ jobs:
 
       - name: Create .env file on instance via SSM
         run: |
+          SECRET_KEY=$(openssl rand -hex 32)
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"mkdir -p /opt/local-services-app && cat > /opt/local-services-app/.env << 'ENVEOF'\nDATABASE_URL=postgresql://${RDS_USERNAME}:${DB_PASSWORD}@${RDS_ADDRESS}:5432/${RDS_DB_NAME}\nSECRET_KEY=$(openssl rand -hex 32)\nALGORITHM=HS256\nACCESS_TOKEN_EXPIRE_MINUTES=30\nENVIRONMENT=production\nENVEOF\nchmod 600 /opt/local-services-app/.env && echo .env file created successfully\"]" \
+            --parameters '{"commands":["mkdir -p /opt/local-services-app && printf '\''DATABASE_URL=postgresql://'"$RDS_USERNAME"':'"$DB_PASSWORD"'@'"$RDS_ADDRESS"':5432/'"$RDS_DB_NAME"'\nSECRET_KEY='"$SECRET_KEY"'\nALGORITHM=HS256\nACCESS_TOKEN_EXPIRE_MINUTES=30\nENVIRONMENT=production\n'\'' > /opt/local-services-app/.env && chmod 600 /opt/local-services-app/.env && echo .env file created successfully"]}' \
             --timeout-seconds 30 \
             --comment "Create .env file" \
             --query "Command.CommandId" --output text)
